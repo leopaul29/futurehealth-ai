@@ -96,9 +96,9 @@ export default function BloodTestForm() {
   return (
     <div className="card blood-test-container">
       <h3>🏥 健診データ自動入力</h3>
-      <p style={{ fontSize: '0.8rem', color: '#666' }}>
+      {/* <p style={{ fontSize: '0.8rem', color: '#666' }}>
         健康診断の結果を撮影してアップロードしてください。
-      </p>
+      </p> */}
 
       <div className="upload-section" style={{ marginBottom: 20 }}>
         <input

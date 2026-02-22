@@ -65,7 +65,7 @@ function ScoreInsight({ currentScore, futureScore }: { currentScore: number, fut
 
       <div style={{ margin: '15px 0', display: 'flex', alignItems: 'baseline', gap: '10px' }}>
         <span style={{ fontSize: '3rem', fontWeight: 'bold' }}>{Math.round(futureScore)}</span>
-        <span style={{ color: '#666' }}>/ 100 点 (1年後予測)</span>
+        <span style={{ color: '#666' }}>/ 100 点 (5年後予測)</span>
       </div>
 
       {/* Trend Indicator */}
