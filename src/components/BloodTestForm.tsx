@@ -25,6 +25,30 @@ export default function BloodTestForm() {
   const [rawText, setRawText] = useState<string | null>(null);
   const [labs, setLabs] = useState<Partial<HealthMetrics>>({});
 
+  function randomLabsValues(): Partial<HealthMetrics> {
+    const intIn = (min: number, max: number) => Math.round(min + Math.random() * (max - min));
+    const floatIn = (min: number, max: number, dp = 1) => {
+      const v = min + Math.random() * (max - min);
+      const m = Math.pow(10, dp);
+      return Math.round(v * m) / m;
+    };
+    return {
+      totalChol: intIn(160, 250),
+      ldl: intIn(80, 180),
+      hdl: intIn(35, 80),
+      tg: intIn(60, 250),
+      fpg: intIn(85, 120),
+      hba1c: floatIn(5.0, 7.0, 1),
+      ast: intIn(15, 60),
+      alt: intIn(15, 60),
+      ggt: intIn(10, 120),
+      uricAcid: floatIn(3.0, 8.0, 1),
+      creatinine: floatIn(0.6, 1.2, 1),
+      egfr: intIn(55, 100),
+      crp: floatIn(0.0, 0.5, 2),
+    };
+  }
+
   // Cleanup preview URL to prevent memory leaks
   useEffect(() => {
     return () => { if (previewUrl) URL.revokeObjectURL(previewUrl); };
@@ -164,9 +188,37 @@ export default function BloodTestForm() {
             })}
           </div>
 
-          <button type="submit" className="apply-button" style={{ width: '100%', marginTop: 20, padding: 10, background: '#007bff', color: 'white', border: 'none', borderRadius: 4 }}>
-            データを反映して未来予測を実行
-          </button>
+          <div style={{ gridColumn: '1/-1', display: 'flex', gap: 12, marginTop: 12 }}>
+            <button type="submit" className="apply-button" style={{ padding: 10, background: '#007bff', color: 'white', border: 'none', borderRadius: 4 }}>
+              Update Score
+            </button>
+            <button
+              type="button"
+              style={{ padding: 10, background: '#4CAF50', color: 'white', border: 'none', borderRadius: 4 }}
+              onClick={() => {
+                setLabs((prev) => ({ ...prev, ...randomLabsValues() }));
+              }}
+            >
+              Random
+            </button>
+            <button
+              type="button"
+              style={{ padding: 10, background: '#9e9e9e', color: 'white', border: 'none', borderRadius: 4 }}
+              onClick={() => {
+                setLabs({});
+                setRawText(null);
+                setErr(null);
+                setProgress(0);
+                setStatus("");
+                setPreviewUrl((u) => {
+                  if (u) URL.revokeObjectURL(u);
+                  return null;
+                });
+              }}
+            >
+              Clear
+            </button>
+          </div>
         </form>
       </div>
     </div>
