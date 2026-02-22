@@ -1,10 +1,7 @@
 import "./App.css";
 import AppProvider from "./state/AppState";
 import Dashboard from "./components/Dashboard";
-import GeneProfileSelector from "./components/GeneProfileSelector";
-import HealthForm from "./components/HealthForm";
-import BloodTestForm from "./components/BloodTestForm";
-import WearableUploader from "./components/WearableUploader";
+import RightTabs from "./components/RightTabs";
 import Toast from "./components/Toast";
 
 export default function App() {
@@ -23,12 +20,9 @@ export default function App() {
           <h1 style={{ margin: 0, fontSize: 22 }}>FutureHealth AI</h1>
         </header>
 
-        <Dashboard />
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginTop: 16 }}>
-          {/* <GeneProfileSelector /> */}
-          <HealthForm />
-          <BloodTestForm />
-          {/* <WearableUploader /> */}
+        <div style={{ display: "grid", gridTemplateColumns: "1.1fr 1fr", gap: 16, alignItems: "start" }}>
+          <Dashboard />
+          <RightTabs />
         </div>
       </div>
       <Toast />

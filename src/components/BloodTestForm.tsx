@@ -186,7 +186,7 @@ export default function BloodTestForm() {
         {loading && <span>読み取り中…</span>}
         {err && <span style={{ color: "crimson" }}>{err}</span>}
       </div>
-      {/* {raw !== null && (
+      {raw !== null && (
         <div style={{ fontSize: 12, color: "#444", background: "#fafafa", padding: 12, borderRadius: 8, marginBottom: 8 }}>
           <div>OCR解析結果: 文字数 {raw.length}</div>
           <div>
@@ -198,7 +198,7 @@ export default function BloodTestForm() {
               : " なし"}
           </div>
         </div>
-      )} */}
+      )}
       <form onSubmit={onApply} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
         <label>
           総コレステロール

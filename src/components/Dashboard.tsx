@@ -4,7 +4,7 @@ import { useApp } from "../state/context";
 import { computeRisk } from "../engine/risk";
 
 export default function Dashboard() {
-  const { state, actions } = useApp();
+  const { state } = useApp();
   const risk = state.risk;
 
   const series = useMemo(() => {
@@ -25,8 +25,8 @@ export default function Dashboard() {
 
   return (
     <div className="card">
-      <h2>FutureHealth AI ダッシュボード</h2>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, alignItems: "stretch" }}>
+      <h2>FutureHealth AI</h2>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 16, alignItems: "stretch" }}>
         <div style={{ border: "1px solid #eee", padding: 16, borderRadius: 8 }}>
           <div style={{ fontSize: 12, color: "#555" }}>現在のリスクスコア</div>
           <div style={{ fontSize: 40, fontWeight: 700 }}>{risk?.riskScore ?? 0}</div>
@@ -60,32 +60,6 @@ export default function Dashboard() {
           <div style={{ marginTop: 8, fontSize: 12, color: "#555" }}>
             {state.lastRecomputeAt ? `最終再計算: ${new Date(state.lastRecomputeAt).toLocaleString()}（スコア ${risk?.riskScore ?? "-" }）` : "再計算履歴なし"}
           </div>
-        </div>
-      </div>
-
-      <div style={{ marginTop: 16, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-        <div className="card" style={{ border: "1px dashed #ddd" }}>
-          <h3>今日のアクション</h3>
-          <div>{state.todayNudge ?? "アクションを生成しましょう。"}</div>
-          <div style={{ marginTop: 8 }}>
-            <button
-              onClick={() => {
-                actions.generateNudge();
-              }}
-            >
-              ナッジを生成
-            </button>
-          </div>
-        </div>
-        <div className="card" style={{ border: "1px dashed #ddd" }}>
-          <h3>ウェアラブルサマリー（直近7日）</h3>
-          <ul style={{ margin: 0, paddingLeft: 16 }}>
-            {state.wearables.days.slice(-7).map((d) => (
-              <li key={d.date}>
-                {d.date}: 歩数 {d.steps} ／ 睡眠 {d.sleepHours}h {d.avgHr ? `／ 平均心拍 ${d.avgHr} bpm` : ""}
-              </li>
-            ))}
-          </ul>
         </div>
       </div>
     </div>

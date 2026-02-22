@@ -187,8 +187,7 @@ export default function HealthForm() {
             onChange={(e) => setForm({ ...form, ldl: e.target.value ? parseInt(e.target.value) : undefined })}
           />
         </label>
-        
-        {/* {ocrRaw !== null && (
+        {ocrRaw !== null && (
           <div style={{ gridColumn: "1 / -1", fontSize: 12, color: "#444", background: "#fafafa", padding: 12, borderRadius: 8 }}>
             <div>OCR解析結果: 文字数 {ocrRaw.length}</div>
             <div>
@@ -200,7 +199,7 @@ export default function HealthForm() {
                 : " なし"}
             </div>
           </div>
-        )} */}
+        )}
         <div style={{ gridColumn: "1 / -1", display: "flex", gap: 12 }}>
           <button
             type="button"
@@ -224,11 +223,11 @@ export default function HealthForm() {
             クリア
           </button>
         </div>
-        {/* <div style={{ gridColumn: "1 / -1", fontSize: 12, color: "#555" }}>
+        <div style={{ gridColumn: "1 / -1", fontSize: 12, color: "#555" }}>
           {state.lastRecomputeAt
             ? `最終再計算: ${new Date(state.lastRecomputeAt).toLocaleString()} ／ スコア ${state.risk?.riskScore ?? "-" }`
             : "再計算はまだ行われていません"}
-        </div> */}
+        </div>
       </form>
     </div>
   );
