@@ -7,6 +7,17 @@ export default function Dashboard() {
   const { state } = useApp();
   const risk = state.risk;
 
+  const futureScore = useMemo(() => {
+    const base = risk?.riskScore ?? 0;
+    const ldl = state.health.ldl ?? 0;
+    const hba1c = state.health.hba1c ?? 0;
+    let delta = 0;
+    if (ldl > 140) delta += 1.5;
+    if (hba1c > 5.7) delta += 2.0;
+    const v = Math.max(0, Math.min(100, Math.round((base + delta) * 10) / 10));
+    return v;
+  }, [risk?.riskScore, state.health.ldl, state.health.hba1c]);
+
   const series = useMemo(() => {
     const hist = state.riskHistory ?? [];
     if (hist.length > 0) {
@@ -42,6 +53,9 @@ export default function Dashboard() {
           <div style={{ marginTop: 8, fontSize: 12, color: "#555" }}>
             健康年齢: {risk?.healthAge ?? "-"} 歳 ／ 糖尿病: {risk?.risks.diabetes ?? 0}% 心血管:{" "}
             {risk?.risks.cardiovascular ?? 0}% 代謝: {risk?.risks.metabolic ?? 0}%
+          </div>
+          <div style={{ marginTop: 8, fontSize: 12, color: "#333" }}>
+            1年後の予測リスクスコア: <strong>{futureScore}</strong>
           </div>
         </div>
 
