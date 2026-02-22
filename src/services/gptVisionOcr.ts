@@ -42,13 +42,19 @@ function buildPrompt(target: OcrTarget) {
 function extractJson(text: string): unknown {
   const trimmed = text.trim();
   try {
+    // Attempt direct parse first
     return JSON.parse(trimmed);
   } catch {
-    const match = trimmed.match(/\{[\s\S]*\}/);
-    if (match) {
-      return JSON.parse(match[0]);
+    // Look for JSON within markdown code blocks or curly braces
+    const jsonMatch = trimmed.match(/```json\s*([\s\S]*?)\s*```/) || trimmed.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      try {
+        return JSON.parse(jsonMatch[1] || jsonMatch[0]);
+      } catch (e) {
+        throw new Error("Found JSON-like string but it's invalid: " + e);
+      }
     }
-    throw new Error("Failed to parse JSON from model output");
+    throw new Error("No valid JSON found in model output: " + trimmed.substring(0, 100));
   }
 }
 
@@ -59,6 +65,8 @@ export async function extractMetricsWithGPT(
   const apiKey = getApiKey();
   const model = pickModel();
   const base = pickBaseUrl();
+  
+  // FIXED: No more stack overflow
   const dataUrl = await fileToDataUrl(file);
 
   const body = {
@@ -68,13 +76,18 @@ export async function extractMetricsWithGPT(
         role: "user",
         content: [
           { type: "text", text: buildPrompt(target) },
-          { type: "image_url", image_url: { url: dataUrl } },
+          { 
+            type: "image_url", 
+            image_url: { 
+                url: dataUrl,
+                detail: "low" // 'low' is faster and cheaper, usually enough for text
+            } 
+          },
         ],
       },
     ],
     temperature: 0,
-    max_tokens: 400,
-    response_format: { type: "text" },
+    max_tokens: 500,
   };
 
   const res = await fetch(`${base}/v1/chat/completions`, {
@@ -85,16 +98,16 @@ export async function extractMetricsWithGPT(
     },
     body: JSON.stringify(body),
   });
+
   if (!res.ok) {
-    const t = await res.text().catch(() => "");
-    throw new Error(`OpenAI error ${res.status}: ${t}`);
+    const errorBody = await res.json().catch(() => ({}));
+    throw new Error(`OpenAI error ${res.status}: ${errorBody.error?.message || res.statusText}`);
   }
+
   const json = await res.json();
-  const content: string =
-    json?.choices?.[0]?.message?.content ??
-    json?.choices?.[0]?.message?.[0]?.text ??
-    "";
+  const content = json?.choices?.[0]?.message?.content;
+  
   if (!content) throw new Error("Empty response from OpenAI");
-  const data = extractJson(content) as Partial<HealthMetrics>;
-  return data as Partial<HealthMetrics>;
+  
+  return extractJson(content) as Partial<HealthMetrics>;
 }
