@@ -1,37 +1,9 @@
 import { useRef, useState } from "react";
-import { createWorker } from "tesseract.js";
 import type { HealthMetrics } from "../types";
 import { useApp } from "../state/context";
+import { extractMetricsWithGPT } from "../services/gptVisionOcr";
 
-function parseMetricsFromText(text: string): Partial<HealthMetrics> {
-  const t = text.replace(/\s+/g, " ").toLowerCase();
-  const out: Partial<HealthMetrics> = {};
-  const num = (m: RegExpMatchArray | null) => {
-    if (!m) return undefined;
-    const v = parseFloat(m[1].replace(/,/g, "."));
-    return Number.isFinite(v) ? v : undefined;
-  };
-  const bmi = num(t.match(/bmi[^0-9]*([0-9]+(?:[.,][0-9]+)?)/i));
-  if (bmi !== undefined) out.bmi = bmi;
-  const hba1c = num(t.match(/hba1c[^0-9]*([0-9]+(?:[.,][0-9]+)?)/i));
-  if (hba1c !== undefined) out.hba1c = hba1c;
-  const ldl = num(t.match(/ldl[^0-9]*([0-9]+(?:[.,][0-9]+)?)/i));
-  if (ldl !== undefined) out.ldl = ldl;
-  // Pattern 1: 収縮期/拡張期 in separate cells (Japanese labels)
-  const sbp = num(t.match(/収縮期[^0-9]{0,8}([1-2]?[0-9]{2})/));
-  const dbp = num(t.match(/拡張期[^0-9]{0,8}([4-9][0-9]|1[0-2][0-9])/));
-  if (sbp !== undefined) out.systolicBp = Math.round(sbp);
-  if (dbp !== undefined) out.diastolicBp = Math.round(dbp);
-  // Pattern 2: numeric pair like 120/80
-  const bpPair = t.match(/([1-2][0-9]{2}|[8-9][0-9]|[1-9][0-9])\s*\/\s*([4-9][0-9]|1[0-2][0-9])/);
-  if (bpPair) {
-    const s = parseInt(bpPair[1], 10);
-    const d = parseInt(bpPair[2], 10);
-    if (out.systolicBp === undefined && Number.isFinite(s)) out.systolicBp = s;
-    if (out.diastolicBp === undefined && Number.isFinite(d)) out.diastolicBp = d;
-  }
-  return out;
-}
+// Removed local text parsing & Tesseract. ChatGPT OCR only.
 
 export default function HealthForm() {
   const { state, actions } = useApp();
@@ -60,59 +32,21 @@ export default function HealthForm() {
     };
   }
 
-  async function preprocessImage(file: File): Promise<HTMLCanvasElement> {
-    const img = await new Promise<HTMLImageElement>((res, rej) => {
-      const url = URL.createObjectURL(file);
-      const i = new Image();
-      i.onload = () => {
-        URL.revokeObjectURL(url);
-        res(i);
-      };
-      i.onerror = (e) => rej(e);
-      i.src = url;
-    });
-    const scale = 2;
-    const canvas = document.createElement("canvas");
-    canvas.width = img.naturalWidth * scale;
-    canvas.height = img.naturalHeight * scale;
-    const ctx = canvas.getContext("2d")!;
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const data = imageData.data;
-    for (let i = 0; i < data.length; i += 4) {
-      const r = data[i],
-        g = data[i + 1],
-        b = data[i + 2];
-      const gray = 0.299 * r + 0.587 * g + 0.114 * b;
-      const v = gray > 180 ? 255 : 0; // simple threshold
-      data[i] = data[i + 1] = data[i + 2] = v;
-    }
-    ctx.putImageData(imageData, 0, 0);
-    return canvas;
-  }
+  // Local image preprocessing & OCR removed.
 
   const handleFile = async (f: File) => {
     setErr(null);
     setLoading(true);
     try {
-      const canvas = await preprocessImage(f);
-      let worker;
-      try {
-        worker = await createWorker("jpn+eng", 1);
-      } catch {
-        worker = await createWorker("eng", 1);
-      }
-      const {
-        data: { text },
-      } = await worker.recognize(canvas);
-      await worker.terminate();
-      setOcrRaw(text);
-      const parsed = parseMetricsFromText(text);
+      const data = await extractMetricsWithGPT(f, "checkup");
+      const parsed: Partial<HealthMetrics> = data;
+      setOcrRaw(JSON.stringify(data));
+      setOcrParsed(parsed);
       setOcrParsed(parsed);
       const merged: HealthMetrics = { ...form, ...parsed };
       setForm(merged);
     } catch {
-      setErr("OCRの読み取りに失敗しました。手入力で調整してください。");
+      setErr("OpenAI OCRに失敗しました。APIキーやネットワークを確認してください。");
     } finally {
       setLoading(false);
     }
@@ -133,7 +67,7 @@ export default function HealthForm() {
           <input
             ref={fileRef}
             type="file"
-            accept="image/*,application/pdf"
+            accept="image/*"
             onChange={(e) => {
               const f = e.target.files?.[0];
               if (f) handleFile(f);
@@ -142,6 +76,7 @@ export default function HealthForm() {
           <button type="button" onClick={() => fileRef.current?.click()} disabled={loading}>
             画像から自動読み取り
           </button>
+          <span style={{ fontSize: 12, color: "#777" }}>OCRモード: ChatGPT</span>
           {loading && <span>読み取り中…</span>}
           {err && <span style={{ color: "crimson" }}>{err}</span>}
         </div>
