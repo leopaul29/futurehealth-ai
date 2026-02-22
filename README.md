@@ -6,6 +6,10 @@
 
 FutureHealth AI is a next-generation health management platform that converts static, physical medical reports into a dynamic, predictive roadmap. By combining **GPT-4o Vision OCR** with a **Proprietary Risk Engine**, we help users visualize their health trajectory one year into the future.
 
+* [Hackathon page](https://luma.com/w3ergmnd)
+* [Presentation slides](https://docs.google.com/presentation/d/18pz6CjSPpkidtK1ox9D1tW1rGu3JrLM8/edit?usp=sharing&ouid=107346971665630367832&rtpof=true&sd=true)
+* [Deployed site](https://futurehealth-ai.vercel.app/)
+
 ---
 
 ## 🌟 Key Features
